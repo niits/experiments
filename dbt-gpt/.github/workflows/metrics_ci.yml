@@ -1,0 +1,91 @@
+name: Metrics Validation
+
+on:
+  push:
+    branches:
+      - main  # Change this to the branch you want to trigger the action on
+  pull_request:
+    branches:
+      - main  # Change this to the branch you want to trigger the action on
+
+jobs:
+  setup-dbt-cloud-profile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9.16'
+
+      - name: Install dbt
+        run: |
+          python -m venv cloud-env
+          source cloud-env/bin/activate
+          pip install dbt
+
+      - name: Set up dbt Cloud profile
+        env:
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+          SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+          SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+        run: |
+          mkdir -p ~/.dbt/
+          echo "snowflake:" >> ~/.dbt/profiles.yml
+          echo " target: dev" >> ~/.dbt/profiles.yml
+          echo " outputs:" >> ~/.dbt/profiles.yml
+          echo "   dev:" >> ~/.dbt/profiles.yml
+          echo "     type: snowflake" >> ~/.dbt/profiles.yml
+          echo "     account: $SNOWFLAKE_ACCOUNT" >> ~/.dbt/profiles.yml
+          echo "     user: $SNOWFLAKE_USER" >> ~/.dbt/profiles.yml
+          echo "     password: ${{ secrets.SNOWFLAKE_PASSWORD }}" >> ~/.dbt/profiles.yml
+          echo "     role: $SNOWFLAKE_ROLE" >> ~/.dbt/profiles.yml
+          echo "     database: $SNOWFLAKE_DATABASE" >> ~/.dbt/profiles.yml
+          echo "     warehouse: $SNOWFLAKE_WAREHOUSE" >> ~/.dbt/profiles.yml
+          echo "     schema: dbt_jstein" >> ~/.dbt/profiles.yml
+     
+      - name: Set up dbt Cloud config
+        run: |
+          mkdir -p ~/.dbt
+          echo 'version: "1"' > ~/.dbt/dbt_cloud.yml
+          echo 'context:' >> ~/.dbt/dbt_cloud.yml
+          echo '  active-host: "cloud.getdbt.com"' >> ~/.dbt/dbt_cloud.yml
+          echo '  active-project: "263759"' >> ~/.dbt/dbt_cloud.yml
+          echo 'projects:' >> ~/.dbt/dbt_cloud.yml
+          echo '  - project-name: "Semantic Layer Demo"' >> ~/.dbt/dbt_cloud.yml
+          echo '    project-id: "263759"' >> ~/.dbt/dbt_cloud.yml
+          echo '    account-name: "Community DX Sandbox"' >> ~/.dbt/dbt_cloud.yml
+          echo '    account-id: "78663"' >> ~/.dbt/dbt_cloud.yml
+          echo '    account-host: "cloud.getdbt.com"' >> ~/.dbt/dbt_cloud.yml
+          echo '    token-name: ${{ secrets.CLOUD_CLI_TOKEN_NAME }}' >> ~/.dbt/dbt_cloud.yml
+          echo '    token-value: ${{ secrets.CLOUD_CLI_TOKEN_VALUE }}' >> ~/.dbt/dbt_cloud.yml
+
+      - name: Verify dbt Cloud profile
+        run: |
+          cat ~/.dbt/profiles.yml
+          cat ~/.dbt/dbt_cloud.yml
+      
+      - name: Run Modified Models
+        run: |
+          source cloud-env/bin/activate
+          dbt run -s state:modified
+      
+      - name: Clone Non-Modified Models
+        run: |
+          source cloud-env/bin/activate
+          dbt clone --exclude state:modified
+          
+      - name: Run Metricflow Validations
+        run: |
+          python -m venv core-env
+          source core-env/bin/activate
+          pip install dbt-core
+          pip install dbt-snowflake
+          pip install dbt-metricflow
+          dbt deps
+          dbt parse
+          mf validate-configs

@@ -1,0 +1,16 @@
+{
+  "python.analysis.typeCheckingMode": "basic",
+  "sqlfluff.dialect": "duckdb",
+  "sqlfluff.experimental.format.executeInTerminal": true,
+  "[jinja-sql]": {
+    "editor.defaultFormatter": "dorzey.vscode-sqlfluff",
+    "editor.formatOnSave": false
+  },
+  "editor.acceptSuggestionOnEnter": true,
+  "editor.quickSuggestions": {
+    "other": false,
+    "comments": false,
+    "strings": false
+  },
+  "editor.quickSuggestionsDelay": 300
+}
