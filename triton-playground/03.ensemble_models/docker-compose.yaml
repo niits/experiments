@@ -1,0 +1,44 @@
+services:
+  tritonserver:
+    image: nvcr.io/nvidia/tritonserver:24.04-py3
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["0"]
+              capabilities: [gpu]
+    volumes:
+      - ./models:/mnt/models
+    ports:
+      - 8000:8000
+      - 8001:8001
+      - 8002:8002
+    command:
+      [
+        "tritonserver",
+        "--model-repository=/mnt/models",
+        "--trace-config",
+        "level=TIMESTAMPS",
+        "--trace-config",
+        "rate=1",
+        "--trace-config",
+        "mode=opentelemetry",
+        "--trace-config",
+        "opentelemetry,url=jaeger:4318/v1/traces",
+      ]
+  jaeger:
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+      - COLLECTOR_OTLP_ENABLED=true
+      - SPAN_STORAGE_TYPE=badger
+      - BADGER_EPHEMERAL=false
+      - BADGER_DIRECTORY_VALUE=/badger/data
+      - BADGER_DIRECTORY_KEY=/badger/key
+    ports:
+
+      - 16686:16686
+      - 4318:4318
+    volumes:
+      - ./badger:/badger
+    image: jaegertracing/all-in-one:1

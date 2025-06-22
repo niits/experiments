@@ -1,0 +1,22 @@
+services:
+  tritonserver:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: [ '0' ]
+              capabilities: [ gpu ]
+    volumes:
+      - ./models:/mnt/models
+      - /home/tran.duc.trungb/.cache/huggingface:/mnt/hf-home:ro
+    environment:
+      - HF_HOME=/mnt/hf-home
+    ports:
+      - 8000:8000
+      - 8001:8001
+      - 8002:8002
+    build:
+      context: dockerfiles
+      dockerfile: Dockerfile
+    command: ["tritonserver", "--model-repository=/mnt/models", "--disable-auto-complete-config", "--model-control-mode=none"]
