@@ -1,0 +1,9 @@
+streamlit
+pandas
+sqlalchemy
+plotly
+vnstock
+llama-index
+duckdb-engine
+python-dotenv
+```
