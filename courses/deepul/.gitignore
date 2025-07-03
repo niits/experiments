@@ -6,3 +6,5 @@
 *.pkl
 *.jpg
 .vscode/
+deepul/
+data/
