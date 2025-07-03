@@ -221,14 +221,10 @@ def q3ab_save_results(dset_type, part, fn):
 def q3c_save_results(dset_type, fn):
     data_dir = get_data_dir(1)
     if dset_type == 1:
-        train_data, test_data = load_pickled_data(
-            join(data_dir, f"shapes_colored.pkl")
-        )
+        train_data, test_data = load_pickled_data(join(data_dir, f"shapes_colored.pkl"))
         img_shape = (20, 20, 3)
     elif dset_type == 2:
-        train_data, test_data = load_pickled_data(
-            join(data_dir, f"mnist_colored.pkl")
-        )
+        train_data, test_data = load_pickled_data(join(data_dir, f"mnist_colored.pkl"))
         img_shape = (28, 28, 3)
     else:
         raise Exception()
@@ -309,7 +305,9 @@ def q4b_save_results(dset_type, fn):
     else:
         raise Exception()
 
-    train_losses, test_losses, samples = fn(train_data, test_data, img_shape, dset_type, vqvae)
+    train_losses, test_losses, samples = fn(
+        train_data, test_data, img_shape, dset_type, vqvae
+    )
 
     # decode? TODO
     samples = samples.astype("float32") / 3 * 255

@@ -152,7 +152,7 @@ def load_colored_mnist_text(file_path):
 
 
 def get_data_dir(hw_number: int):
-    return join('deepul', 'homeworks', f'hw{hw_number}', 'data')
+    return join("deepul", "homeworks", f"hw{hw_number}", "data")
 
 
 def quantize(images: np.ndarray, n_bits: int = 8):
@@ -172,6 +172,7 @@ def load_text_data(pickle_file_path: str):
     test_set = data[-test_set_size:]
 
     return train_set, test_set
+
 
 def save_text_to_plot(text_samples, filename, image_width=600, image_height=900):
     scale_factor = 2
@@ -209,11 +210,13 @@ def save_text_to_plot(text_samples, filename, image_width=600, image_height=900)
         draw.text((padding, current_h), wrapped_text, font=text_font, fill="black")
 
         # Update the Y position for the next text
-        current_h += (text_font_size + spacing) * len(wrapped_text.split("\n")) + title_spacing
+        current_h += (text_font_size + spacing) * len(
+            wrapped_text.split("\n")
+        ) + title_spacing
 
     dpi = 300
     plt.figure(figsize=(image_width / dpi, image_height / dpi), dpi=dpi)
     plt.imshow(image)
-    plt.axis('off')
+    plt.axis("off")
     plt.savefig(filename, dpi=dpi)
     plt.show()
